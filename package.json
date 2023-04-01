@@ -1,7 +1,7 @@
 {
-  "name": "muse-ant-design-dashboard",
+  "name": "admin-music-dashboard",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "dependencies": {
     "@ant-design/icons": "^4.6.2",
     "@reduxjs/toolkit": "^1.9.3",
