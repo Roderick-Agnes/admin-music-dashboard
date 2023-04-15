@@ -2,11 +2,8 @@ import {
   Row,
   Col,
   Card,
-  Radio,
   Table,
   Upload,
-  message,
-  Progress,
   Button,
   Avatar,
   Typography,
@@ -16,62 +13,27 @@ import {
   Form,
   Input,
   Select,
-  Checkbox,
-  Switch,
-  Tooltip,
 } from "antd";
 
 import {
   PauseOutlined,
-  PlayCircleOutlined,
   PlaySquareOutlined,
-  PlusCircleOutlined,
   PlusOutlined,
-  SearchOutlined,
-  ToTopOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
-import { Link } from "react-router-dom";
 
 // Images
-import ava1 from "../assets/images/logo-shopify.svg";
-import ava2 from "../assets/images/logo-atlassian.svg";
-import ava3 from "../assets/images/logo-slack.svg";
-import ava5 from "../assets/images/logo-jira.svg";
-import ava6 from "../assets/images/logo-invision.svg";
-import face from "../assets/images/face-1.jpg";
-import face2 from "../assets/images/face-2.jpg";
-import face3 from "../assets/images/face-3.jpg";
-import face4 from "../assets/images/face-4.jpg";
-import face5 from "../assets/images/face-5.jpeg";
-import face6 from "../assets/images/face-6.jpeg";
-import pencil from "../assets/images/pencil.svg";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { songsApi } from "../api/songs.api";
-import { useDispatch, useSelector } from "react-redux";
-import { selectUserInfo, setLoading } from "../reducer";
-import {
-  audioSpinnerStyle,
-  datetime,
-  formItemLayout,
-  formatTimeDuration,
-  normFile,
-  toaster,
-} from "../libs";
-import {
-  EditOutlined,
-  DeleteOutlined,
-  CloseOutlined,
-  FileAddOutlined,
-} from "@ant-design/icons";
+import { useSelector } from "react-redux";
+import { selectUserInfo } from "../reducer";
+import { formItemLayout, formatTimeDuration, toaster } from "../libs";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 import { storage } from "../libs/firebase.config";
-import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { v4 } from "uuid";
-import { ScaleLoader } from "react-spinners";
 
-const { Title } = Typography;
-const { Option } = Select;
 // table code start
 const columns = [
   {
@@ -114,12 +76,10 @@ function Songs() {
 
   // modal state
   const [open, setOpen] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [modalType, setModalType] = useState("edit");
   const [modalContent, setModalContent] = useState(<></>);
   const [form] = Form.useForm();
-  const [avatarIdIsUpdated, setAvatarIdIsUpdated] = useState();
   const [avatarUrlIsUpdated, setAvatarUrlIsUpdated] = useState("");
   const [audioIdIsUpdated, setAudioIdIsUpdated] = useState();
   const [audioUrlIsUpdated, setAudioUrlIsUpdated] = useState("");
@@ -134,7 +94,7 @@ function Songs() {
   const userInfo = useSelector(selectUserInfo);
 
   // firebase
-  const audioUrlListRef = ref(storage, "audio/");
+  // const audioUrlListRef = ref(storage, "audio/");
 
   const handleFetchSongsData = async (pageNumber, size) => {
     setTypeFilter("all");
@@ -279,17 +239,20 @@ function Songs() {
     const imageRef = ref(storage, `image/${avatarId}`);
     uploadBytes(imageRef, file).then((snapshot) => {
       toaster(`Avatar with ${avatarId} is uploaded to firebase`);
-      console.log(`Avatar with ${avatarId} is uploaded to firebase`);
       getDownloadURL(snapshot.ref).then((url) => setAvatarUrlIsUpdated(url));
-      setAvatarIdIsUpdated(avatarId);
     });
   };
 
   useEffect(() => {
-    handleFetchSongsData(pageNumber, size);
     return () => {
-      audioRef.current.pause();
+      try {
+        audioRef.current.pause();
+      } catch (error) {}
     };
+  }, []);
+
+  useEffect(() => {
+    handleFetchSongsData(pageNumber, size);
   }, [songIdIsPlaying]);
 
   const onFinish = (values) => {
