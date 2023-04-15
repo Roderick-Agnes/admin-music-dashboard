@@ -119,6 +119,8 @@ function Songs() {
   const [modalType, setModalType] = useState("edit");
   const [modalContent, setModalContent] = useState(<></>);
   const [form] = Form.useForm();
+  const [avatarIdIsUpdated, setAvatarIdIsUpdated] = useState();
+  const [avatarUrlIsUpdated, setAvatarUrlIsUpdated] = useState("");
   const [audioIdIsUpdated, setAudioIdIsUpdated] = useState();
   const [audioUrlIsUpdated, setAudioUrlIsUpdated] = useState("");
   const [songIdIsPlaying, setSongIdIsPlaying] = useState(0);
@@ -272,6 +274,17 @@ function Songs() {
     ),
   });
 
+  const updateAvatarHandler = (file) => {
+    const avatarId = `thumbnail-${v4()}`;
+    const imageRef = ref(storage, `image/${avatarId}`);
+    uploadBytes(imageRef, file).then((snapshot) => {
+      toaster(`Avatar with ${avatarId} is uploaded to firebase`);
+      console.log(`Avatar with ${avatarId} is uploaded to firebase`);
+      getDownloadURL(snapshot.ref).then((url) => setAvatarUrlIsUpdated(url));
+      setAvatarIdIsUpdated(avatarId);
+    });
+  };
+
   useEffect(() => {
     handleFetchSongsData(pageNumber, size);
   }, [songIdIsPlaying]);
@@ -286,12 +299,11 @@ function Songs() {
     }
     return e?.fileList;
   };
-  const handleFileUpload = (file) => {
+  const songUpdateToServerHandler = (file) => {
     const audioId = `cmusic${v4()}`;
     const audioRef = ref(storage, `audio/${audioId}`);
     uploadBytes(audioRef, file).then((snapshot) => {
       toaster(`Audio with ${audioId} is uploaded to firebase`);
-      console.log(`Audio with ${audioId} is uploaded to firebase`);
       getDownloadURL(snapshot.ref).then((url) => setAudioUrlIsUpdated(url));
 
       setAudioIdIsUpdated(audioId);
@@ -354,16 +366,7 @@ function Songs() {
           valuePropName="fileList"
           getValueFromEvent={normFile}
         >
-          <Upload
-            name="logo"
-            action={"http://localhost:3000/songs"}
-            listType="picture"
-            onChange={({ file }) => {
-              setTimeout(() => {
-                avatarRef.current = file.thumbUrl;
-              }, 500);
-            }}
-          >
+          <Upload name="logo" action={updateAvatarHandler} listType="picture">
             <Button icon={<UploadOutlined />}>Click to upload</Button>
           </Upload>
         </Form.Item>
@@ -373,7 +376,7 @@ function Songs() {
           valuePropName="fileList"
           getValueFromEvent={normFile}
         >
-          <Upload action={handleFileUpload} accept="audio/*">
+          <Upload action={songUpdateToServerHandler} accept="audio/*">
             <Button icon={<UploadOutlined />}>Upload Audio</Button>
           </Upload>
         </Form.Item>
@@ -392,7 +395,6 @@ function Songs() {
     setModalType("edit");
 
     const editInfo = await songsApi.getSongById(userInfo.accessToken, id);
-    console.log("editInfo: ", editInfo);
 
     setModalContent(editForm(editInfo.data));
   };
@@ -412,7 +414,7 @@ function Songs() {
       const alias = formRef.current.getFieldInstance("alias").input.value;
       const artistsNames =
         formRef.current.getFieldInstance("artistsNames").input.value;
-      const thumbnailM = avatarRef.current;
+      const thumbnailM = avatarUrlIsUpdated;
 
       const audio = new Audio(audioUrlIsUpdated);
 
@@ -449,7 +451,7 @@ function Songs() {
     const alias = formRef.current.getFieldInstance("alias").input.value;
     const artistsNames =
       formRef.current.getFieldInstance("artistsNames").input.value;
-    const thumbnailM = avatarRef.current;
+    const thumbnailM = avatarUrlIsUpdated;
 
     if (audioIdIsUpdated) {
       const audio = new Audio(audioUrlIsUpdated);
@@ -500,6 +502,7 @@ function Songs() {
         });
     }
   };
+
   const handleCancel = () => {
     setOpen(false);
     setModalContent(<></>);
