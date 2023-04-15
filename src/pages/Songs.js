@@ -287,6 +287,9 @@ function Songs() {
 
   useEffect(() => {
     handleFetchSongsData(pageNumber, size);
+    return () => {
+      audioRef.current.pause();
+    };
   }, [songIdIsPlaying]);
 
   const onFinish = (values) => {
